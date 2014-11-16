@@ -31,6 +31,12 @@ Important notes
 message and leave the old arguments as it is. In such cases you should fix them.
 * It is recommended that you run the converter only on files that have already been checked-in. Otherwise, if something goes wrong, you might lose your partial work (and you cannot blame me for that ;-)
 
+Testing
+===
+It is strongly recommended that you take a look at ExampleInput.java.input file to understand what kind of inputs can be processed. To run the converter locally, you can simply run the test.sh file. This will run the converter and tell you if the conversion was successful.
+
+    ./test.sh
+
 Licensed under BSD license. Read the LICENSE file.
 
 Enjoy!
