@@ -1,0 +1,17 @@
+// Simple input.
+logger.info("Hello {}", who);
+
+// Variable between two strings.
+logger.info("Hello {} there", who);
+
+// Simple function call.
+logger.info("Hello {}", getWho());
+
+// Function call between two strings.
+logger.info("Hello {} there", getWho());
+
+// Complex variable list.
+logger.info("Hello {}, {}!", who, greeting);
+
+// Multiple input lines.
+logger.info("hello  there{}", who);
