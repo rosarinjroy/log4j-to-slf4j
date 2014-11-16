@@ -26,7 +26,7 @@ The original input file will be saved with a .orig extension. You can provide mu
 
 Important notes
 ===
-* You have to take care of fixing the import statments (converting from Log4j to SLF4J loggers).
+* You have to take care of fixing the import statments (converting from Log4j to SLF4J loggers). You should also take care of instantiating your Logger from SLF4J's LoggerFactory.
 * It is assumed that your loggers are named as log or logger (case insensitive). If you have named your logger in any other way, please modify the global variable LOGGER_NAMES and it should work.
 * It is recommended that you run the converter only on files that have already been checked-in. Otherwise, if something goes wrong, you might lose your partial work (and you cannot blame me for that ;-)
 * There are cases when the converter cannot reliably convert the arguments. In such cases, it will print a warning
