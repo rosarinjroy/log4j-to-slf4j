@@ -23,9 +23,9 @@ The original input file will be saved with a .orig extension. You can provide mu
 
 Important notes
 ===
-# It is assumed that your loggers are named as log or logger (case insensitive). If you have named your logger in any other way, 
+* It is assumed that your loggers are named as log or logger (case insensitive). If you have named your logger in any other way, 
 please modify the global variable LOGGER_NAMES and get it work.
-# There are cases when the converter cannot reliably convert the arguments. In such cases, it will print a warning
+* There are cases when the converter cannot reliably convert the arguments. In such cases, it will print a warning
 message and leave the old arguments as it is. In such cases you should fix them.
 
 Licensed under BSD license. Read the LICENSE file.
