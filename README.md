@@ -12,7 +12,7 @@ Will be converted to:
     
 Pre-requisites
 ===
-You should have Python 2.7.x should be installed.
+You should have Python 2.7.x installed.
 
 It is assumed that you are using SLF4J 1.7 or later that has varadic argument support.
 
