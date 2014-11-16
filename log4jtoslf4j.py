@@ -314,11 +314,11 @@ def main():
     parse_cmdline_args()
     setup_logging()
     for file_name in input_files:
-        logger.info('Converting file: %s'%file_name)
+        logger.info('BEGIN : Processing file: %s'%file_name)
         output = convert(file_name)
         backup_file(file_name)
         write_file(file_name, output)
-        logger.info('Converted file: %s'%file_name);
+        logger.info('END   : Processing file: %s'%file_name);
 
 if __name__ == '__main__':
     main()
