@@ -1,4 +1,16 @@
+import org.apache.log4j.Logger;
+
 public class ExampleInput {
+    // Simple getLogger statement.
+    Logger logger1 = Logger.getLogger("logger1");
+
+    // getLogger with extraneous spaces.
+    Logger logger2 = Logger  .   getLogger (   "logger2"   );
+
+    // getLogger with line breaks.
+    Logger logger3 = Logger.
+        getLogger
+        ("logger3");
 
     public static void main(String[] args) {
         // Simple input.
