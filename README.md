@@ -35,7 +35,6 @@ message and leave the old arguments as it is. In such cases you should manually 
 
     log4jtoslf4j.py `` `find . -type f -name '*.java'` ``
 
-
 Testing
 ===
 It is strongly recommended that you take a look at ExampleInput.java.input file to understand what kind of inputs can be processed. To run the converter locally, you can simply run the test.sh file. This will run the converter and tell you if the conversion was successful.
