@@ -59,16 +59,26 @@ import re
 # you should specify them here. THIS LIST IS CASE INSENSITIVE.
 LOGGER_NAMES = ['logger', 'log']
 
+# Log levels
+LOG_LEVELS = ['trace', 'debug', 'info', 'error', 'warn', 'fatal']
+
 # This the maximum statement length that is supported.
 # This is used while replacing import statements and variable declarations.
 MAX_STMT_LEN = 200
 
+# This is the pattern for log statements.
+LOG_STMT_RE = '(' + '|'.join(LOGGER_NAMES) + ')\s*\.\s*(' + '|'.join(LOG_LEVELS) + ')\s*'
+print '*** Log statement regex: [%s]'%LOG_STMT_RE
+LOG_STMT_CRE = re.compile(LOG_STMT_RE, re.DOTALL|re.MULTILINE)
+
 # This is the pattern for import statements.
-IMPORT_STMT_RE = r'(import\s+org\s*\.\s*apache\s*\.\s*log4j\s*\..+?;)'
+IMPORT_STMT_RE = r'import\s+org\s*\.\s*apache\s*\.\s*log4j\s*\..+?;'
 IMPORT_STMT_CRE = re.compile(IMPORT_STMT_RE, re.DOTALL|re.MULTILINE)
 
-GET_LOGGER_RE = r'(Logger\s*\.\s*getLogger\s*)'
+# This is the pattern for getLogger statements.
+GET_LOGGER_RE = r'Logger\s*\.\s*getLogger\s*'
 GET_LOGGER_CRE = re.compile(GET_LOGGER_RE, re.DOTALL|re.MULTILINE)
+
 # Don't confuse this logger with the logger_name that appears in the Java program.
 # This logger is for our debugging purposes.
 logger = None
@@ -137,117 +147,36 @@ def is_eof():
     global offset, content
     return offset >= len(content)
 
-def skip_white_spaces():
-    """
-    Skips the white space and returns the new offset.
-
-    :param content: Input content
-    :param offset: Offset from where the whitespace should be skipped.
-    :return:
-    """
-    global logger, content, offset
-    logger.debug("Offset before: %d, len(content): %d"%(offset, len(content)))
-    if offset >= len(content):
-        return
-
-    while offset < len(content) and content[offset].isspace(): offset += 1
-    logger.debug("Offset after: %d"%(offset))
-
-def capture_next_token():
-    """
-    Captures the next word (alpha-numeric, underscores or dot)
-    :param content:
-    :param offset:
-    :return:
-    """
-    global offset
-    start_pos = offset
-
-    if is_eof(): return None
-
-    # Dot and plus should be treated as a token in itself.
-    if content[offset] in ['.', '+']:
-        offset += 1
-    else:
-        while offset < len(content) and (content[offset].isalnum() or content[offset] == '_'):
-            offset += 1
-
-    next_token = content[start_pos:offset]
-    logger.debug("Next token: %s"%next_token)
-    return next_token
-
 def looking_at_log_stmt():
     """
-    Returns a tuple (<is log stmt>, <new offset>).
-
-    :param content:
-    :param offset:
-    :return:
+    Returns true if looking at a log statment. It also updates the offset,
+    logger_name and log_level accordingly.
     """
-    global LOGGER_NAMES, logger, offset, logger_name, log_level
+    global LOG_STMT_CRE, logger, content, offset, logger_name, log_level
     logger_name = None
-    log_leval = None
-    start_offset = offset
+    log_level = None
+    paren_at = content.find('(', offset)
+    if paren_at == -1:
+        logger.debug('Cannot find open paren. Returning False.')
+        return False
+    logger.debug('Offset: %d, paren_at: %d'%(offset, paren_at))
+    logger.debug('Checking if log statement at: %s'%content[offset: offset + 20])
 
-    obj_name = capture_next_token()
-    logger.debug("Object name: %s"%(obj_name))
-    if obj_name == None: return None
-
-    obj_name = obj_name.strip().lower()
-    if obj_name not in LOGGER_NAMES:
-        offset = start_offset
+    match = LOG_STMT_CRE.match(content, offset, paren_at)
+    if match is None:
+        logger.debug('Didnt match regex [%s]. Failing.'%LOG_STMT_RE)
         return False
 
-    logger.debug("Captured logger: %s"%(obj_name))
+    logger_name = match.group(1)
+    log_level = match.group(2)
 
-    skip_white_spaces()
-    dot = capture_next_token()
-    logger.debug("Dot: %s"%(dot))
+    offset = paren_at
 
-    if dot == None:
-        offset = start_offset
-        return False
-
-    dot = dot.strip()
-
-    if dot != '.':
-        offset = start_offset
-        return False
-
-    logger.debug("Captured dot")
-
-    skip_white_spaces()
-    level = capture_next_token()
-    if level == None:
-        offset = start_offset
-        return False
-
-    level = level.strip()
-    if level in ['trace', 'debug', 'info', 'error', 'warn', 'fatal']:
-        logger_name = obj_name
-        log_level = level
-        return True
-    else:
-        offset = start_offset
-        return False
-
-def highlight_error(where):
-    """
-    Highlights error at a particular position. In the content.
-    :param where: Offset position where the error has occurred.
-    :return:
-    """
-    context_len = 30
-    start_pos = max(where - context_len, 0)
-    end_pos = min(len(content), where + context_len)
-    logger.error("Error at offset: %d", where);
-    if start_pos < where < end_pos:
-        logger.error("%s<<%s>>%s"%(content[start_pos:where],content[where], content[where+1:end_pos]))
+    return True
 
 def move_to_matching_paren():
     global content, offset
     if content[offset] != '(':
-        highlight_error(offset)
         raise Exception("Expected an open parenthesis at offset %d, but found %s"%(offset,content[offset]))
     count = 0
 
@@ -278,7 +207,6 @@ def is_balanced(input):
     return count == 0 and (count_quotes % 2) == 0
 
 def convert_log_args():
-    skip_white_spaces()
     start_offset = offset
     move_to_matching_paren()
     # Skip the opening and matching parenthesis (hence +1 and -1).
