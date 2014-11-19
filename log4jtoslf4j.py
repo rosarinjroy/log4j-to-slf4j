@@ -51,18 +51,31 @@ also be converted.
 import os
 import logging
 import argparse
+import re
 
 # Customization section.
 # Logger names to look for in the input Java file. If you have any other logger names in your input file,
 # you should specify them here. THIS LIST IS CASE INSENSITIVE.
 LOGGER_NAMES = ['logger', 'log']
 
+# This the maximum statement length that is supported.
+# This is used while replacing import statements and variable declarations.
+MAX_STMT_LEN = 200
+
+# This is the pattern for import statements.
+IMPORT_STMT_RE = r'(import\s+org\s*\.\s*apache\s*\.\s*log4j\s*\..+?;)'
+IMPORT_STMT_CRE = re.compile(IMPORT_STMT_RE, re.DOTALL|re.MULTILINE)
+
+GET_LOGGER_RE = r'(Logger\s*\.\s*getLogger\s*)'
+GET_LOGGER_CRE = re.compile(GET_LOGGER_RE, re.DOTALL|re.MULTILINE)
 # Don't confuse this logger with the logger_name that appears in the Java program.
 # This logger is for our debugging purposes.
 logger = None
 
 debug = False
 input_files = []
+
+slf4j_imports_added = False
 
 content = None
 offset = 0
@@ -173,6 +186,7 @@ def looking_at_log_stmt():
     global LOGGER_NAMES, logger, offset, logger_name, log_level
     logger_name = None
     log_leval = None
+    start_offset = offset
 
     obj_name = capture_next_token()
     logger.debug("Object name: %s"%(obj_name))
@@ -180,6 +194,7 @@ def looking_at_log_stmt():
 
     obj_name = obj_name.strip().lower()
     if obj_name not in LOGGER_NAMES:
+        offset = start_offset
         return False
 
     logger.debug("Captured logger: %s"%(obj_name))
@@ -188,23 +203,32 @@ def looking_at_log_stmt():
     dot = capture_next_token()
     logger.debug("Dot: %s"%(dot))
 
-    if dot == None: return False
+    if dot == None:
+        offset = start_offset
+        return False
 
     dot = dot.strip()
 
-    if dot != '.': return False
+    if dot != '.':
+        offset = start_offset
+        return False
 
     logger.debug("Captured dot")
 
     skip_white_spaces()
     level = capture_next_token()
-    if level == None: return False
+    if level == None:
+        offset = start_offset
+        return False
 
     level = level.strip()
     if level in ['trace', 'debug', 'info', 'error', 'warn', 'fatal']:
         logger_name = obj_name
         log_level = level
         return True
+    else:
+        offset = start_offset
+        return False
 
 def highlight_error(where):
     """
@@ -285,6 +309,51 @@ def convert_log_args():
 
     return '("' + format_string + '", ' + args + ')'
 
+def looking_at_import_stmt():
+    global IMPORT_STMT_CRE, content, offset
+    import_key_word = 'import'
+    if content.find(import_key_word, offset) != offset:
+        logger.debug('Didnt find import keyword at offset %d'%offset)
+        return False
+    semicolon_at = content.find(';', offset)
+    logger.debug('Semicolon at: %d'%semicolon_at)
+    if semicolon_at == -1:
+        return False
+    matches = IMPORT_STMT_CRE.match(content, offset, semicolon_at + 1) is not None
+    if matches:
+        offset = semicolon_at + 1
+        logger.debug('Is log4j import statement: %s'%matches)
+    else:
+        logger.debug('Import statement, but not log4j import.')
+    return matches
+
+def get_slf4j_imports_once():
+    global slf4j_imports_added
+
+    if slf4j_imports_added: return ""
+    slf4j_imports_added = True
+    return """
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+    """
+
+def looking_at_get_logger_stmt():
+    global GET_LOGGER_CRE, content, offset
+    paren_at = content.find('(', offset)
+    if paren_at == -1:
+        return False
+    logger.debug('Possible getLogger stmt. Checking ...')
+    match = GET_LOGGER_CRE.match(content, offset, paren_at)
+    matches =  match is not None
+    logger.debug('Is getLogget stmt? %s'%matches)
+    if matches:
+        offset += len(match.group(0))
+        logger.debug('Is getLogger statement? %s'%matches)
+    else:
+        logger.debug('Not a getLogger statement.')
+    return matches
+
+
 def convert(file_name):
     global content, offset, logger_name, log_level
 
@@ -304,6 +373,12 @@ def convert(file_name):
             new_args = convert_log_args()
             logger.debug("   new args    : %s"%new_args)
             output += logger_name + '.' + log_level + new_args
+            index = offset
+        elif looking_at_import_stmt():
+            output += get_slf4j_imports_once()
+            index = offset
+        elif looking_at_get_logger_stmt():
+            output += "LoggerFactory.getLogger"
             index = offset
         else:
             output += content[index]
