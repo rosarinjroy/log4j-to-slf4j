@@ -33,7 +33,7 @@ message and leave the old arguments as it is. In such cases you should manually 
 * Please watch out for WARN messages while the script is running. If there are any WARN messages, you may have to convert those log strings yourself.
 * If you would like to run this script on a directory, you can simply use the find command as below:
 
-    log4jtoslf4j.py `find . -type f -name '*.java'`
+    log4jtoslf4j.py `` `find . -type f -name '*.java'` ``
 
 
 Testing
