@@ -1,3 +1,4 @@
+#!/usr/bin/python
 """
 This script converts the log statements in the given file from log4j format to slf4j format.
 Please see the ExampleInput.java file to see the sample input and ExampleInput.java.output

@@ -1,6 +1,6 @@
 Introduction
 ===
-This is utility that can be used to convert Log4j formatted log statements to SLF4J formatted log statements.
+This is a simple utility that can be used to convert Log4j formatted log statements to SLF4J formatted log statements.
 
 A sample input is:
 
@@ -9,10 +9,10 @@ A sample input is:
 Will be converted to:
 
     logger.info("Hello {}", who);
-    
+
 Pre-requisites
 ===
-You should have Python 2.7.x should be installed.
+You should have Python 2.7.x installed.
 
 It is assumed that you are using SLF4J 1.7 or later that has varadic argument support.
 
@@ -26,10 +26,18 @@ The original input file will be saved with a .orig extension. You can provide mu
 
 Important notes
 ===
-* It is assumed that your loggers are named as log or logger (case insensitive). If you have named your logger in any other way, please modify the global variable LOGGER_NAMES and get it work.
-* There are cases when the converter cannot reliably convert the arguments. In such cases, it will print a warning
-message and leave the old arguments as it is. In such cases you should fix them.
+* You have to take care of fixing the import statments (converting from Log4j to SLF4J loggers). You should also take care of instantiating your Logger from SLF4J's LoggerFactory.
+* It is assumed that your loggers are named as log or logger (case insensitive). If you have named your logger in any other way, please modify the global variable LOGGER_NAMES and it should work.
 * It is recommended that you run the converter only on files that have already been checked-in. Otherwise, if something goes wrong, you might lose your partial work (and you cannot blame me for that ;-)
+* There are cases when the converter cannot reliably convert the arguments. In such cases, it will print a warning
+message and leave the old arguments as it is. In such cases you should manually fix them.
+* Please watch out for WARN messages while the script is running. If there are any WARN messages, you may have to convert those log strings yourself.
+
+Testing
+===
+It is strongly recommended that you take a look at ExampleInput.java.input file to understand what kind of inputs can be processed. To run the converter locally, you can simply run the test.sh file. This will run the converter and tell you if the conversion was successful.
+
+    ./test.sh
 
 Licensed under BSD license. Read the LICENSE file.
 
