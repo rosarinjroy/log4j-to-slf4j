@@ -35,7 +35,7 @@ message and leave the old arguments as it is. In such cases you should manually 
 
     log4jtoslf4j.py `` `find . -type f -name '*.java'` ``
 
-* *Please note that this script doesn't touch MDC related statements.* You will have to fix those statements yourselves manually. Also [log statements with Priority](http://logging.apache.org/log4j/1.2/apidocs/org/apache/log4j/Category.html#log(org.apache.log4j.Priority, java.lang.Object) will not be property converted. 
+* *Please note that this script doesn't touch MDC related statements.* You will have to fix those statements yourselves manually. Also [log statements with Priority](http://logging.apache.org/log4j/1.2/apidocs/org/apache/log4j/Category.html#log%28org.apache.log4j.Priority, java.lang.Object%29) will not be property converted. 
 
 Testing
 ===
