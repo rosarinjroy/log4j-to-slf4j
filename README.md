@@ -35,6 +35,8 @@ message and leave the old arguments as it is. In such cases you should manually 
 
     log4jtoslf4j.py `` `find . -type f -name '*.java'` ``
 
+* *Please note that this script doesn't touch MDC related statements.* You will have to fix those statements yourselves manually. Also [log statements with Priority](http://logging.apache.org/log4j/1.2/apidocs/org/apache/log4j/Category.html#log(org.apache.log4j.Priority, java.lang.Object) will not be property converted. 
+
 Testing
 ===
 It is strongly recommended that you take a look at ExampleInput.java.input file to understand what kind of inputs can be processed. To run the converter locally, you can simply run the test.sh file. This will run the converter and tell you if the conversion was successful.
